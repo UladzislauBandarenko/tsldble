@@ -1,0 +1,105 @@
+-- insert
+--1
+insert into film (title, rental_rate, rental_duration, language_id)
+values (lower('The Green book'), 4.99, 14, 1);
+
+--select * from film
+--where title = 'green book';
+
+--2
+insert into actor (actor_id, first_name, last_name)
+values
+  (1001, lower('Peter'), lower('Farrelly')),
+  (1002, lower('Viggo'), lower('Mortensen')),
+  (1003, lower('Mahershala'), lower('Ali'));
+
+insert into film_actor (actor_id, film_id)
+values
+  (1001, 1002), 
+  (1002, 1002), 
+  (1003, 1002); 
+
+--3
+select * from inventory
+
+insert into film (film_id, title, rental_rate, rental_duration, language_id)
+values
+  (1003, lower('Shrek'), 4.99, 14, 1),
+  (1004, lower('Shrek 2'), 4.99, 14, 1),
+  (1005, lower('Shrek 3'), 4.99, 14, 1);
+
+insert into inventory (film_id, store_id)
+values
+  (1003, 1),
+  (1004, 1),
+  (1005, 1);
+
+-- update
+--1
+update film
+set
+  rental_duration = 3,
+  rental_rate = 9.99
+where
+  film_id in (1003, 1004, 1005);
+
+--2
+-- Identify a customer with at least 10 rental and 10 payment records
+with customerToUpdate as (
+  select
+    c.customer_id
+  from
+    customer c
+    join rental r on c.customer_id = r.customer_id
+    join payment p on c.customer_id = p.customer_id
+  group by
+    c.customer_id
+  having
+    count(distinct r.rental_id) >= 10
+    and count(distinct p.payment_id) >= 10
+  limit 1
+)
+-- Update personal data for the identified customer
+update customer
+set
+  first_name = lower('Uladzislau'),
+  last_name = lower('Bandarenka'),
+  email = lower('UladzislaBandarenka@example.com'),
+  address_id = (select address_id from address order by random() limit 1)
+where
+  customer_id in (select customer_id from customerToUpdate);
+
+--3
+with customerToUpdate as (
+  select
+    c.customer_id
+  from
+    customer c
+    join rental r on c.customer_id = r.customer_id
+    join payment p on c.customer_id = p.customer_id
+  group by
+    c.customer_id
+  having
+    count(distinct r.rental_id) >= 10
+    and count(distinct p.payment_id) >= 10
+  limit 1
+)
+-- Update create_date for the identified customer
+update customer
+set
+  create_date = current_date
+where
+  customer_id in (select customer_id from customerToUpdate);
+
+-- delete
+--1
+delete from rental
+where inventory_id in (select inventory_id from inventory where film_id = 1002);
+
+-- Delete inventory records for the film
+delete from inventory
+where film_id = 1002;
+
+--2
+delete from payment where customer_id = 1;
+delete from rental where customer_id = 1;
